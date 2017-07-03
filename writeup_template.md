@@ -58,8 +58,17 @@ And here's another image!
 #### 1. Fill in the `IK_server.py` file with properly commented python code for calculating Inverse Kinematics based on previously performed Kinematic Analysis. Your code must guide the robot to successfully complete 8/10 pick and place cycles. Briefly discuss the code you implemented and your results. 
 
 
-The workflow of the code:
+Overview of the Logic to calculate joint angles:
+Calculate the wrist center (WC) position. Use WC to calculate theta1, theta2 and theta3, as WC doesn't change with change in theta4-6.
+Theta1 is calculated by projecting the WC on X-Y plane as atan2(wcy,wcx).
+For theta2 and theta3, I constructed the triangle with joint2, joint3 and WC and I project the arm in X-Z plane by setting theta1=0 as shown below.- ??? I imagined the same problem with theta1=0, so that i have to deal only with 2-D.
+I shift the origin to joint2 and represent WC in that frame (wcx1,wcz1). The two sides of the triangle are link2 and link3, which I obtained from the URDF file (put link here???). The third side was simply the magnitude of WC in that frame (sqrt(wcx1^2 + wcz1^2)). Then I applied cosine rule of triangles to calculate q2 and q3, from which I further calculate joint angles theta2 and theta3.
+As the joint angles theta4 to theta6 only contribute to the rotation of the end effector and do not change WC position, instead of homogeneous transform matrices, I have only considered rotational matrices.
+As taught in the lessons, R3_6 = transpose(R0_3) * R0_6.
+I calculated R0_3 using the theta1,theta2,theta3 values. R0_6 is calculated from the roll,pitch,yaw values provided. Thus RHS is known. Using the matrices in forward kinematics, I independently calculated R3_6 symbolically???. Then I obtained the equations for theta4 to theta6 using atan2() function. 
 
+The workflow of the code:
+Note: Sequence in which joint angles are calculated is - Theta1, Theta2, Theta3, Theta4, Theta6, Theta5
 Once the EE(End Effector) positions are received, following steps are done only once, as they are common for all positions -
 1. DH parameter symbols are created
 2. DH parameters are defined and stored in a hash table
@@ -69,21 +78,16 @@ Once the EE(End Effector) positions are received, following steps are done only 
 6. Rotations about independent axis R_x1, R_y1 and R_z1 are symbolically defined
 7. Euler Extrinsic rotation X-Y-Z is calculated symbolically and stored in "R0_6_sym". The multiplication by transpose of correction matrix accounts for R0_6 rotation from URDF frame to DH frame of reference.
 
-Sequence in which joint angles are calculated is - Theta1, Theta2, Theta3, Theta4, Theta6, Theta5
-Logic to calculate theta1 to theta6:
-Calculate the wrist center (WC) position. Use WC to calculate theta1, theta2 and theta3, as WC doesn't change with change in theta4-6.
-Theta1 is calculated by projecting the WC on X-Y plane as atan2(wcy,wcx).
-For theta2 and theta3, I construct the triangle with joint2, joint3 and WC and I project the arm in X-Z plane by setting theta1=0 as shown below- ???
-I shift the origin to joint2 and represent WC in that frame (wcx1,wcz1). The two sides of the triangle are link2 and link3, which I obtained from the URDF file (put link here???). The third side was simply the magnitude of WC in that frame. Then I applied cosine rule of triangles to calculate q2 and q3, from which I further calculate joint angles theta2 and theta3.
-
-
 Now, following steps are done for each position:
 1. Get positional (x,y,z) and rotational (roll,pitch,yaw) vectors from the sent request
 2. Evaluate the symbolic rotational matrix R0_6_sym to get the rotational matrix R0_6 in DH frame.
-3. Wrist Center (WC)  is calculated as P - R0_6 * [0, 0, d4]. d4 is the distance between WC and EE.
-
-4. 
-5. 
+3. Wrist Center (WC)  is calculated as P - R0_6 * [0, 0, d4]. Here, d4 is the distance between WC and EE from URDF file.
+5. angle_t1 is the angle of WC w.r.t. the positive X-axis in the new frame wehre joint2 is the origin.
+4. theta22 and theta33 are the angles as shown above, calculated using the cosine rule of triangles
+5. theta2 and theta3 are calculated from theta22 and theta33 respectively. (refer figure above)
+6. R0_3 is calculated from substituting first three joint angle values in R0_3_sym.
+7. theta4 and theta6 are directly calculated as they are independently represented by atan2.
+8. theta5 cannot be independently represented in atan2. Without atan2, there would be ambiguity in value and sign of theta5. It could either be calculated from  theta4 or theta6. I chose theta6. But the first calculation of theta5 contains cos(theta6) in denominator. So for theta6 very close to pi/2, the value will be incorrect. In that case, the next 'if' condition will become true, and there I use sin(theta6).
 
 And just for fun, another example image:
 ![alt text][image3]
