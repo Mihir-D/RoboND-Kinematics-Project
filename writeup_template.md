@@ -58,8 +58,32 @@ And here's another image!
 #### 1. Fill in the `IK_server.py` file with properly commented python code for calculating Inverse Kinematics based on previously performed Kinematic Analysis. Your code must guide the robot to successfully complete 8/10 pick and place cycles. Briefly discuss the code you implemented and your results. 
 
 
-Here I'll talk about the code, what techniques I used, what worked and why, where the implementation might fail and how I might improve it if I were going to pursue this project further.  
+The workflow of the code:
 
+Once the EE(End Effector) positions are received, following steps are done only once, as they are common for all positions -
+1. DH parameter symbols are created
+2. DH parameters are defined and stored in a hash table
+3. Symbols for roll, pitch and yaw are created
+4. Next, R0_3 is symbolically calculated using the joint angle symbols q1, q2 and q3
+5. A rotational matrix for correction between the DH frame and URDF frame of EE is calculated
+6. Rotations about independent axis R_x1, R_y1 and R_z1 are symbolically defined
+7. Euler Extrinsic rotation X-Y-Z is calculated symbolically and stored in "R0_6_sym". The multiplication by transpose of correction matrix accounts for R0_6 rotation from URDF frame to DH frame of reference.
+
+Sequence in which joint angles are calculated is - Theta1, Theta2, Theta3, Theta4, Theta6, Theta5
+Logic to calculate theta1 to theta6:
+Calculate the wrist center (WC) position. Use WC to calculate theta1, theta2 and theta3, as WC doesn't change with change in theta4-6.
+Theta1 is calculated by projecting the WC on X-Y plane as atan2(wcy,wcx).
+For theta2 and theta3, I construct the triangle with joint2, joint3 and WC and I project the arm in X-Z plane by setting theta1=0 as shown below- ???
+I shift the origin to joint2 and represent WC in that frame (wcx1,wcz1). The two sides of the triangle are link2 and link3, which I obtained from the URDF file (put link here???). The third side was simply the magnitude of WC in that frame. Then I applied cosine rule of triangles to calculate q2 and q3, from which I further calculate joint angles theta2 and theta3.
+
+
+Now, following steps are done for each position:
+1. Get positional (x,y,z) and rotational (roll,pitch,yaw) vectors from the sent request
+2. Evaluate the symbolic rotational matrix R0_6_sym to get the rotational matrix R0_6 in DH frame.
+3. Wrist Center (WC)  is calculated as P - R0_6 * [0, 0, d4]. d4 is the distance between WC and EE.
+
+4. 
+5. 
 
 And just for fun, another example image:
 ![alt text][image3]
