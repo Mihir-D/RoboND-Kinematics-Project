@@ -25,6 +25,16 @@
 [image6]: ./misc_images/theta2_theta3.JPG
 [image7]: ./misc_images/theta3_correction.JPG
 [image8]: ./misc_images/theta2_theta3_alternate_solution.JPG
+[image9]: ./misc_images/crazy_trajectory3.JPG
+[image10]: ./misc_images/demo_mode1.png
+[image11]: ./misc_images/demo_mode4.png
+[image12]: ./misc_images/IK2.png
+[image13]: ./misc_images/IK5.png
+[image14]: ./misc_images/IK10.png
+[image15]: ./misc_images/IK13.png
+[image16]: ./misc_images/IK17.png
+[image17]: ./misc_images/IK18.png
+[image18]: ./misc_images/IK22.png
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -37,6 +47,12 @@
 
 ### Kinematic Analysis
 #### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
+
+Demo Mode:
+
+![alt text][image10]
+
+![alt text][image11]
 
 In below image, I have defined DH frames for each joint as per the steps given in the lessons.
 ![alt text][image4]
@@ -53,13 +69,16 @@ Using the image above, I filled up the DH parameter table using [URDF file](./ku
  6 | -pi/2 | 0 | 0 | theta6
  7 | 0 | 0 | dG | 0
 
+
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
 
 I have written the [code for Forward Kinematics](./kuka_arm/scripts/kuka_arm_fw_kinematics.py) It generates all individual joint transformation matrices and also homogeneous transform between base_link and gripper_link. Uncomment the print statements at the end of the code as required.
 
 The output matrices generated using the code above are [here](./FK_output.txt).
 
-*Note: For better visualization, use **Notepad++**.*
+I also ran *forward_kinematics* in demo mode and verified *my forward kinematics implementation*.
+
+*Note: For better visualization, use **Notepad++** for FK_output.txt .*
 
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
@@ -90,15 +109,15 @@ Also, I shift the origin to joint2 and represent WC in that frame (wcx1,wcz1), a
 
 The two sides of the triangle are link2 and link3, which I obtained from the [URDF file](./kuka_arm/urdf/kr210.urdf.xacro). The third side was simply the magnitude of WC in that frame *(sqrt(wcx1^2 + wcz1^2))*. Then I applied cosine rule of triangles to calculate q2 and q3, from which I further calculate joint angles theta2 and theta3 as below:
 
-*theta22 = acos((r1^2 + t1^2 - s1^2)/(2*r1*t1))* 
+*`theta22 = acos((r1^2 + t1^2 - s1^2)/(2*r1*t1))`* 
 
-*theta33 = acos((r1^2 + s1^2 - t1^2)/(2*r1*s1))*
+*`theta33 = acos((r1^2 + s1^2 - t1^2)/(2*r1*s1))`*
 
-*angel_t1 = atan2(wcz1,wcx1)*
+*`angel_t1 = atan2(wcz1,wcx1)`*
 
-*theta2 = pi/2 - (theta22 + angle_t1)*
+*`theta2 = pi/2 - (theta22 + angle_t1)`*
 
-*theta3 = pi/2 - theta33*
+*`theta3 = pi/2 - theta33`*
 
 But the angle theta3 calculated above is not the actual joint angle(Refer figure below). Thus, a correction is needed to get the joint angle theta3. Refer the figure below. When joint angle theta3=0, the above calculated theta3 will be alpha. Therefore, we need to subtract this offset alpha from the calculated theta3.
 
@@ -106,7 +125,7 @@ But the angle theta3 calculated above is not the actual joint angle(Refer figure
 
 a=d4 and b=a3 as in DH parameter table.
 
-*theta3 = pi/2 - theta33 - alpha*
+*`theta3 = pi/2 - theta33 - alpha`*
 
 
 ![alt text][image7]
@@ -139,17 +158,17 @@ Index | 0 | 1 | 2
 
 Then I obtained the equations for theta4 to theta6 as below -
 
-*theta4 = atan2((-R3_6[2,2]), R3_6[0,2])*
+*`theta4 = atan2((-R3_6[2,2]), R3_6[0,2])`*
 
-*theta6 = atan2(R3_6[1,1], (-R3_6[1,0]))*
+*`theta6 = atan2(R3_6[1,1], (-R3_6[1,0]))`*
 
-*theta5 = atan2((R3_6[1,0]/cos(theta6)), R3_6[1,2])*
+*`theta5 = atan2((R3_6[1,0]/cos(theta6)), R3_6[1,2])`*
 
-In case cos(theta6)==0, I calculate theta6 using sin(theta6) as below -
+In case `cos(theta6)==0`, I calculate theta6 using sin(theta6) as below -
 
-*theta5 = atan2((-R3_6[1,1]/sin(theta6)), R3_6[1,2])*
+*`theta5 = atan2((-R3_6[1,1]/sin(theta6)), R3_6[1,2])`*
 
-Note: theta4 can also be used to calculate theta5. 
+*Note: theta4 can also be used to calculate theta5.* 
 
 ### Project Implementation
 
@@ -178,20 +197,32 @@ Now, following steps are done for each position:
 8. theta5 cannot be independently represented in atan2. Without atan2, there would be ambiguity in value and sign of theta5. It could either be calculated from  theta4 or theta6. I chose theta6. But the first calculation of theta5 contains cos(theta6) in denominator. So for theta6 very close to pi/2, the value will be incorrect. In that case, the next 'if' condition will become true, and there I use sin(theta6) to instead of cos(theta6).
 
 **Results:**
-The end-effector moved exact same trajectory as provided, even in case of weird trajectories (see below). 
+The end-effector moved the `exact same trajectory` as provided(see below). 
 
-???
+![alt text][image12]
 
-![alt text][image3]
+![alt text][image13]
 
-It was able to successfully perform the pick and place for all object positions. 
+![alt text][image14]
 
-???
+
+**And Even in case of Wierd Trajectories!!**
+
+![alt text][image9]
+
+I was able to `successfully perform the pick and place for all object positions`. 
+
+![alt text][image15]
+
+![alt text][image16]
+
+![alt text][image17]
+
+![alt text][image18]
+
 
 
 When *theta5 is zero*, there are two possible solutions for theta4 and theta6, as their axis of rotations will match. I haven't tackled this condition explicitly. Therefore, the arm performs some unnecessary rotation of joint4 and joint6 at the beginning. 
 
-And just for fun, another example image:
-![alt text][image3]
 
 
