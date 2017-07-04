@@ -58,19 +58,13 @@ Using the image above, I filled up the DH parameter table using [URDF file](./ku
 
 I have written code for [Forward Kinematics](./kuka_arm/scripts/kuka_arm_fw_kinematics.py) It generates all individual joint transformation matrices and also homogeneous transform between base_link and gripper_link. Uncomment the print statements at the end of the code as required.
 
-Here's | A | Snappy | Table
---- | --- | --- | ---
-1 | `highlight` | **bold** | 7.41
-2 | a | b | c
-3 | *italic* | text | 403
-4 | 2 | 3 | abcd
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
 
 The logic explained:
 As the Z-axis of last three joints meet at one point (at joint J5), the kinematics problem is decoupled into Inverse Position Kinematics and Inverse Orientation Kinematics. Thus, the **first 3 joint angles** are responsible for the **position** of the end-effector and **last three joints** will be responsible for the **orientation** of the end-effector.
 First, I Calculate the wrist center (WC) position. WC is the translation of the end-effector point P along the Z-axis of joint 6 frame.
-Hence, **WC = P - R0_6 * [0, 0, d4]**.
+Hence, **WC = P - R0_6 * [0, 0, dG]**.
 Here, d4 is the distance between WC and EE from URDF file.
 Then I use WC to calculate theta1, theta2 and theta3, as WC doesn't change with change in theta4-6.
 **Theta1** is calculated by projecting the WC on X-Y plane as *atan2(wcy,wcx)*. Refer to image below:
@@ -135,7 +129,7 @@ Once the EE(End Effector) positions are received, following steps are done only 
 Now, following steps are done for each position:
 1. Get positional (x,y,z) and rotational (roll,pitch,yaw) vectors from the sent request
 2. Evaluate the symbolic rotational matrix R0_6_sym to get the rotational matrix R0_6 in DH frame.
-3. Wrist Center (WC)  is calculated as P - R0_6 * [0, 0, d4]. Here, d4 is the distance between WC and EE from URDF file.
+3. Wrist Center (WC)  is calculated as P - R0_6 * [0, 0, dG]. Here, dG is the distance between WC and Gripper from URDF file.
 5. angle_t1 is the angle of WC w.r.t. the positive X-axis in the new frame wehre joint2 is the origin.
 4. theta22 and theta33 are the angles as shown above, calculated using the cosine rule of triangles
 5. theta2 and theta3 are calculated from theta22 and theta33 respectively. (refer figure above)
