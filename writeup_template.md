@@ -24,6 +24,7 @@
 [image5]: ./misc_images/theta1.JPG
 [image6]: ./misc_images/theta2_theta3.JPG
 [image7]: ./misc_images/theta3_correction.JPG
+[image8]: ./misc_images/theta2_theta3_alternate_solution.JPG
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -33,7 +34,6 @@
 
 #### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  
 
-You're reading it!
 
 ### Kinematic Analysis
 #### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
@@ -41,7 +41,7 @@ You're reading it!
 In below image, I have defined DH frames for each joint as per the steps given in the lessons.
 ![alt text][image4]
 
-Using the image above, I filled up the DH parameter table using [URDF file](./kuka_arm/urdf/kr210.urdf.xacro). Below is the DH parameter table:
+Using the image above, I filled up the DH parameter table using [URDF file](./kuka_arm/urdf/kr210.urdf.xacro). I used the guideline in [as mentioned here](./DH_parameters) Below is the DH parameter table:
 
 **i** | **alpha(i-1)** | **a(i-1)** | **d(i)** | **theta(i)**
 --- | --- | --- | --- | ---
@@ -55,7 +55,11 @@ Using the image above, I filled up the DH parameter table using [URDF file](./ku
 
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
 
-I have written code for [Forward Kinematics](./kuka_arm/scripts/kuka_arm_fw_kinematics.py) It generates all individual joint transformation matrices and also homogeneous transform between base_link and gripper_link. Uncomment the print statements at the end of the code as required.
+I have written the [code for Forward Kinematics](./kuka_arm/scripts/kuka_arm_fw_kinematics.py) It generates all individual joint transformation matrices and also homogeneous transform between base_link and gripper_link. Uncomment the print statements at the end of the code as required.
+
+The output matrices generated using the code above are [here](./FK_output.txt).
+
+*Note: For better visualization, use **Notepad++**.*
 
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
@@ -66,7 +70,7 @@ First, I Calculate the wrist center (WC) position. WC is the translation of the 
 Hence, **WC = P - R0_6 * [0, 0, dG]**.  Here, dG is the distance between WC and EE from URDF file.
 
 Then I use WC to calculate theta1, theta2 and theta3, as WC doesn't change with change in theta4-6.
-**Theta1** is calculated by projecting the WC on X-Y plane as *atan2(wcy,wcx)*. Refer to image below:
+**Theta1** is calculated by projecting the WC on X-Y plane as *atan2(wcy,wcx)*. Refer to image below (images are not upto scale):
 
 ![alt text][image5]
 
@@ -74,10 +78,11 @@ For **theta2 and theta3**, I constructed the triangle with joint2, joint3 and WC
 
 ![alt text][image6]
 
-I imagined the same problem with theta1=0, so that i have to deal only with 2-D.
-I shift the origin to joint2 and represent WC in that frame (wcx1,wcz1).
+I imagined the same problem with theta1=0, so that I have to deal only with 2-D. Therefore, as theta1 is URDF Z-axis rotation, the value of Z remains same in 2-D frame. But value of X in this frame is different and is calculated below as wcx11.
 
 *wcx11 = sqrt(wcx^2 + wcy^2)* .... The X-component when arm is represented in X-Z plane
+
+Also, I shift the origin to joint2 and represent WC in that frame (wcx1,wcz1), as shown below.
 
 *wcx1 = wcx11 - a1*
 
@@ -106,10 +111,26 @@ a=d4 and b=a3 as in DH parameter table.
 
 ![alt text][image7]
 
+
+**Considering other possibilities:**
+
+**For theta1:**
+Mathematically, theta2 and theta3 can also be found for theta1 = theta1 + pi. For this, imagine the arm to be flipped about the Z-axis of base, and theta2 and theta3 turning all the way up to reach the point behind. But that would mean larger joint angles, and hence more redundant motion. Also, the joint angles will be beyond their physical limitations resulting in link collisions. As there is a fixed link between joint1 and joint2 which also extends X-direction of the DH frame of joint1, in this flipped case, reach of end-effector will be reduced by this length.
+
+**For theta2 and theta3:**
+The possibilites for alternative theta2 and theta3 are as shown below -
+
+![alt text][image8]
+
+The main disadvantage in this case is when given end-effector position will be closer to the base link, the joint3 will hit the ground (as shown in (b) in figure above). Also, both joint angle magnitudes will be greater (as shown in (a) and (b) in figure above). Therefore, this solution was discarded.
+
+**Calculating theta4 to theta6:**
 As the joint angles **theta4 to theta6** only contribute to the rotation of the end effector and do not change WC position, instead of homogeneous transform matrices, I have only considered rotational matrices.
 As taught in the lessons, R3_6 = transpose(R0_3) * R0_6.
 I calculated R0_3 using the theta1,theta2,theta3 values. R0_6 is calculated from the roll,pitch,yaw values provided. Thus RHS is known. Using the matrices in forward kinematics, I independently calculated R3_6 symbolically.
-R3_6 = 
+
+**R3_6 =** 
+
 Index | 0 | 1 | 2
 --- | --- | --- | ---
 0 | -sin(q4) * sin(q6) + cos(q4) * cos(q5) * cos(q6) | -sin(q4) * cos(q6) - sin(q6) * cos(q4) * cos(q5) | -sin(q5) * cos(q4)
@@ -117,10 +138,15 @@ Index | 0 | 1 | 2
 2 | -sin(q4) * cos(q5) * cos(q6) - sin(q6) * cos(q4) |  sin(q4) * sin(q6) * cos(q5) - cos(q4) * cos(q6) | sin(q4) * sin(q5)
 
 Then I obtained the equations for theta4 to theta6 as below -
-*theta4 = atan2((-R3_6[2,2]), R3_6[0,2])
-theta6 = atan2(R3_6[1,1], (-R3_6[1,0]))
-theta5 = atan2((R3_6[1,0]/cos(theta6)), R3_6[1,2])*
-In case cos(theta6)==0, I calculate theta6 using sin(theta6) as below
+
+*theta4 = atan2((-R3_6[2,2]), R3_6[0,2])*
+
+*theta6 = atan2(R3_6[1,1], (-R3_6[1,0]))*
+
+*theta5 = atan2((R3_6[1,0]/cos(theta6)), R3_6[1,2])*
+
+In case cos(theta6)==0, I calculate theta6 using sin(theta6) as below -
+
 *theta5 = atan2((-R3_6[1,1]/sin(theta6)), R3_6[1,2])*
 
 Note: theta4 can also be used to calculate theta5. 
@@ -150,6 +176,20 @@ Now, following steps are done for each position:
 6. R0_3 is calculated from substituting first three joint angle values in R0_3_sym.
 7. theta4 and theta6 are directly calculated as they are independently represented by atan2.
 8. theta5 cannot be independently represented in atan2. Without atan2, there would be ambiguity in value and sign of theta5. It could either be calculated from  theta4 or theta6. I chose theta6. But the first calculation of theta5 contains cos(theta6) in denominator. So for theta6 very close to pi/2, the value will be incorrect. In that case, the next 'if' condition will become true, and there I use sin(theta6) to instead of cos(theta6).
+
+**Results:**
+The end-effector moved exact same trajectory as provided, even in case of weird trajectories (see below). 
+
+???
+
+![alt text][image3]
+
+It was able to successfully perform the pick and place for all object positions. 
+
+???
+
+
+When *theta5 is zero*, there are two possible solutions for theta4 and theta6, as their axis of rotations will match. I haven't tackled this condition explicitly. Therefore, the arm performs some unnecessary rotation of joint4 and joint6 at the beginning. 
 
 And just for fun, another example image:
 ![alt text][image3]
