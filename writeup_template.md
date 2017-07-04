@@ -63,41 +63,55 @@ I have written code for [Forward Kinematics](./kuka_arm/scripts/kuka_arm_fw_kine
 As the Z-axis of last three joints meet at one point (at joint J5), the kinematics problem is decoupled into Inverse Position Kinematics and Inverse Orientation Kinematics. Thus, the **first 3 joint angles** are responsible for the **position** of the end-effector and **last three joints** will be responsible for the **orientation** of the end-effector.
 First, I Calculate the wrist center (WC) position. WC is the translation of the end-effector point P along the Z-axis of joint 6 frame.
 
-Hence, **WC = P - R0_6 * [0, 0, dG]**.
-Here, dG is the distance between WC and EE from URDF file.
+Hence, **WC = P - R0_6 * [0, 0, dG]**.  Here, dG is the distance between WC and EE from URDF file.
 
 Then I use WC to calculate theta1, theta2 and theta3, as WC doesn't change with change in theta4-6.
 **Theta1** is calculated by projecting the WC on X-Y plane as *atan2(wcy,wcx)*. Refer to image below:
 
 ![alt text][image5]
 
-For theta2 and theta3, I constructed the triangle with joint2, joint3 and WC and I imagine the arm in X-Z plane by setting theta1=0 as shown below -
+For **theta2 and theta3**, I constructed the triangle with joint2, joint3 and WC and I imagine the arm in X-Z plane by setting theta1=0 as shown below -
 
 ![alt text][image6]
 
 I imagined the same problem with theta1=0, so that i have to deal only with 2-D.
-I shift the origin to joint2 and represent WC in that frame (wcx1,wcz1). 
+I shift the origin to joint2 and represent WC in that frame (wcx1,wcz1).
+
 *wcx11 = sqrt(wcx^2 + wcy^2)* .... The X-component when arm is represented in X-Z plane
+
 *wcx1 = wcx11 - a1*
+
 *wcz1 = wcz - d1*
+
 The two sides of the triangle are link2 and link3, which I obtained from the [URDF file](./kuka_arm/urdf/kr210.urdf.xacro). The third side was simply the magnitude of WC in that frame *(sqrt(wcx1^2 + wcz1^2))*. Then I applied cosine rule of triangles to calculate q2 and q3, from which I further calculate joint angles theta2 and theta3 as below:
+
 *theta22 = acos((r1^2 + t1^2 - s1^2)/(2*r1*t1))* 
+
 *theta33 = acos((r1^2 + s1^2 - t1^2)/(2*r1*s1))*
+
 *angel_t1 = atan2(wcz1,wcx1)*
+
 *theta2 = pi/2 - (theta22 + angle_t1)*
+
 *theta3 = pi/2 - theta33*
-But the angle theta3 calculated above is not the actual joint angle(Refer figure below). Thus, a correction is needed to get the joint angle theta3. Refer the figure below. When joint angle theta3=0, the above calculated theta3 will be alpha. Therefore, we need to subract this offset alpha from the calculated theta3.
+
+But the angle theta3 calculated above is not the actual joint angle(Refer figure below). Thus, a correction is needed to get the joint angle theta3. Refer the figure below. When joint angle theta3=0, the above calculated theta3 will be alpha. Therefore, we need to subtract this offset alpha from the calculated theta3.
+
 *alpha = atan(b/a)* ... a and b are obtained from [URDF file](./kuka_arm/urdf/kr210.urdf.xacro).
+
 a=d4 and b=a3 as in DH parameter table.
+
 *theta3 = pi/2 - theta33 - alpha*
+
 
 ![alt text][image7]
 
-As the joint angles theta4 to theta6 only contribute to the rotation of the end effector and do not change WC position, instead of homogeneous transform matrices, I have only considered rotational matrices.
+As the joint angles **theta4 to theta6** only contribute to the rotation of the end effector and do not change WC position, instead of homogeneous transform matrices, I have only considered rotational matrices.
 As taught in the lessons, R3_6 = transpose(R0_3) * R0_6.
 I calculated R0_3 using the theta1,theta2,theta3 values. R0_6 is calculated from the roll,pitch,yaw values provided. Thus RHS is known. Using the matrices in forward kinematics, I independently calculated R3_6 symbolically.
 R3_6 = 
 Index | 0 | 1 | 2
+--- | --- | --- | ---
 0 | -sin(q4) * sin(q6) + cos(q4) * cos(q5) * cos(q6) | -sin(q4) * cos(q6) - sin(q6) * cos(q4) * cos(q5) | -sin(q5) * cos(q4)
 1 | sin(q5) * cos(q6)| -sin(q5) * sin(q6) | cos(q5)
 2 | -sin(q4) * cos(q5) * cos(q6) - sin(q6) * cos(q4) |  sin(q4) * sin(q6) * cos(q5) - cos(q4) * cos(q6) | sin(q4) * sin(q5)
