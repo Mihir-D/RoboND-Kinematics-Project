@@ -60,11 +60,12 @@ I have written code for [Forward Kinematics](./kuka_arm/scripts/kuka_arm_fw_kine
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
 
-The logic explained:
 As the Z-axis of last three joints meet at one point (at joint J5), the kinematics problem is decoupled into Inverse Position Kinematics and Inverse Orientation Kinematics. Thus, the **first 3 joint angles** are responsible for the **position** of the end-effector and **last three joints** will be responsible for the **orientation** of the end-effector.
 First, I Calculate the wrist center (WC) position. WC is the translation of the end-effector point P along the Z-axis of joint 6 frame.
+
 Hence, **WC = P - R0_6 * [0, 0, dG]**.
-Here, d4 is the distance between WC and EE from URDF file.
+Here, dG is the distance between WC and EE from URDF file.
+
 Then I use WC to calculate theta1, theta2 and theta3, as WC doesn't change with change in theta4-6.
 **Theta1** is calculated by projecting the WC on X-Y plane as *atan2(wcy,wcx)*. Refer to image below:
 
