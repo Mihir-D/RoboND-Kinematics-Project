@@ -97,7 +97,7 @@ But the angle theta3 calculated above is not the actual joint angle(Refer figure
 a=d4 and b=a3 as in DH parameter table.
 *theta3 = pi/2 - theta33 - alpha*
 
-[alt text][image7]
+![alt text][image7]
 
 As the joint angles theta4 to theta6 only contribute to the rotation of the end effector and do not change WC position, instead of homogeneous transform matrices, I have only considered rotational matrices.
 As taught in the lessons, R3_6 = transpose(R0_3) * R0_6.
