@@ -20,10 +20,10 @@
 [image1]: ./misc_images/misc1.png
 [image2]: ./misc_images/misc2.png
 [image3]: ./misc_images/misc3.png
-[image4]: ./misc_images/DH_parameter_diagram.jpg
-[image5]: ./misc_images/theta1.jpg
-[image6]: ./misc_images/theta2_theta3.jpg
-[image7]: ./misc_images/theta3_correction.jpg
+[image4]: ./misc_images/DH_parameter_diagram.JPG
+[image5]: ./misc_images/theta1.JPG
+[image6]: ./misc_images/theta2_theta3.JPG
+[image7]: ./misc_images/theta3_correction.JPG
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
