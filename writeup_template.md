@@ -35,6 +35,8 @@
 [image16]: ./misc_images/IK17.png
 [image17]: ./misc_images/IK18.png
 [image18]: ./misc_images/IK22.png
+[image19]: ./misc_images/FK_demo1.png
+[image20]: ./misc_images/FK_demo2.png
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -48,11 +50,20 @@
 ### Kinematic Analysis
 #### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
 
-Demo Mode:
+**Forward Kinematics Demo:**
 
-![alt text][image10]
+`roslaunch kuka_arm forward_kinematics.launch`
 
-![alt text][image11]
+I changed the joint angles to understand their positive direction of rotation (see figure below).
+
+![alt text][image20]
+
+`rosrun tf tf_echo base_link gripper_link`
+
+Later, I verified this end-effector position with my forward kinematics code, which is explained in next topic. 
+
+![alt text][image19]
+
 
 In below image, I have defined DH frames for each joint as per the steps given in the lessons.
 ![alt text][image4]
