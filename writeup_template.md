@@ -226,6 +226,7 @@ Now, following steps are done for each position:
 
 ![alt text][image9]
 
+
 **I was able to `successfully perform the pick and place for all object positions`.**
 
 ![alt text][image15]
@@ -237,8 +238,6 @@ Now, following steps are done for each position:
 ![alt text][image18]
 
 
-
-When *theta5 is zero*, there are two possible solutions for theta4 and theta6, as their axis of rotations will match. I haven't tackled this condition explicitly. Therefore, the arm performs some unnecessary rotation of joint4 and joint6 at the beginning. They are computationally correct, but I'll try to avoid them in future by adding appropriate conditions to my code.
 
 
 
