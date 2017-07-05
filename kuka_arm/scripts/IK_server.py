@@ -82,6 +82,7 @@ def handle_calculate_IK(req):
 
 	#Correction needed to account of orientation difference between definition of gripper link
 	# between URDF file vs. DH convention
+	#This correction is needed to calculate R0_6, as the roll,pitch,yaw angles are given in URDF frame
         R_y = Matrix([[ cos(-pi/2),        0, sin(-pi/2)],
                       [ 0,                 1,         0],
                       [-sin(-pi/2),        0, cos(-pi/2)]])
@@ -90,7 +91,6 @@ def handle_calculate_IK(req):
                       [       0,        0,       1]])
         R_corr = simplify(R_z * R_y)
 
-        #T_total =  simplify(T0_G * R_corr)
 	#print("Mihir2")
 
         #Using Rrpy to calculate R0_6
@@ -105,9 +105,8 @@ def handle_calculate_IK(req):
         R_z1 = Matrix([[ cos(yaw1), -sin(yaw1),        0],
                       [ sin(yaw1),  cos(yaw1),        0],
                       [ 0,              0,        1]])
-        #Below is extrinsic Z-Y-X rotation
-        #R0_6_sym = simplify(R_x1 * R_y1 * R_z1 * R_corr.transpose())
-        R0_6_sym = simplify(R_z1 * R_y1 * R_x1 * R_corr.transpose()) #extrinsic X-Y-Z
+        #Below is extrinsic X-Y-Z rotation
+        R0_6_sym = simplify(R_z1 * R_y1 * R_x1 * R_corr.transpose())
 	#print("Mihir3")
 
         for x in xrange(0, len(req.poses)):
@@ -139,13 +138,12 @@ def handle_calculate_IK(req):
 	    wcx1 = wcx11 - 0.35 # wcx - a1, -0.15 is gripper length
 	    wcz1 = wcz - 0.75 #+ 0.2 # wcz - d1
             #print("Mihir6")
-	    a11 = wcx1
-	    b11 = wcz1
 	    r1 = 1.25
             s1 = 1.501 #sqrt(d4**2 + a3**2)
             t1 = sqrt(wcx1**2 + wcz1**2)
-            c11 = (r1**2 + (wcx1)**2 + (wcz1)**2 - s1**2)/(2*r1)
-	    #below line is tested
+	    #a11 = wcx1 #this is for a different method. Ignore this method
+	    #b11 = wcz1
+            #c11 = (r1**2 + (wcx1)**2 + (wcz1)**2 - s1**2)/(2*r1)
             #theta2 = pi/2 - (atan2(b11,a11) + acos(c11/(t1)))
 	    """
             r1 = 1.25	#link2 length
@@ -163,6 +161,7 @@ def handle_calculate_IK(req):
 	    #Hence, to know joint angle theta3, a correction is needed as shown below
 	    theta33 = acos((r1**2 + s1**2 - t1**2)/(2*r1*s1))
 	    #Convert theta33 to joint angle theta3
+	    #Below theta3_corr is to get actual joint angle from calculated WC angle, as there is a fixed offset between joint3 and joint4
 	    #J3_5 = 1.5 (d4), J3_4 = 0.96, height = 0.054 (a3)
 	    theta3_corr = 0.036  #0.0562 #0.020
 	    theta2 = pi/2 - (angle_t1 + theta22)
