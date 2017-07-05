@@ -65,8 +65,11 @@ Later, I verified this end-effector position with my forward kinematics code, wh
 ![alt text][image19]
 
 
-In below image, I have defined DH frames for each joint as per the steps given in the lessons.
+In below image, I have defined **DH frames** for each joint as per the steps given in the lessons.
+
 ![alt text][image4]
+
+Origin O6 was shifted to WC (which is joint5 center) to minimize the calculations.
 
 Using the image above, I filled up the DH parameter table using [URDF file](./kuka_arm/urdf/kr210.urdf.xacro). I used the guideline in [as mentioned here](./DH_parameters) Below is the DH parameter table:
 
@@ -87,7 +90,7 @@ I have written the [code for Forward Kinematics](./kuka_arm/scripts/kuka_arm_fw_
 
 The output matrices generated using the code above are [here](./FK_output.txt).
 
-I also ran *forward_kinematics* in demo mode and verified *my forward kinematics implementation*.
+I also ran *forward_kinematics* in demo mode (discussed in previous topic) and verified *my forward kinematics implementation*.
 
 *Note: For better visualization, use **Notepad++** for FK_output.txt .*
 
@@ -108,7 +111,7 @@ For **theta2 and theta3**, I constructed the triangle with joint2, joint3 and WC
 
 ![alt text][image6]
 
-I imagined the same problem with theta1=0, so that I have to deal only with 2-D. Therefore, as theta1 is URDF Z-axis rotation, the value of Z remains same in 2-D frame. But value of X in this frame is different and is calculated below as wcx11.
+I imagined the same problem with theta1=0, so that I have to deal only with 2-D. Therefore, as *theta1* is the rotation about *URDF Z-axis*, the value of Z remains same in 2-D frame. But value of X in this frame is the projection of WC on X-Y plane and is calculated below as wcx11.
 
 *wcx11 = sqrt(wcx^2 + wcy^2)* .... The X-component when arm is represented in X-Z plane
 
@@ -132,7 +135,7 @@ The two sides of the triangle are link2 and link3, which I obtained from the [UR
 
 But the angle theta3 calculated above is not the actual joint angle(Refer figure below). Thus, a correction is needed to get the joint angle theta3. Refer the figure below. When joint angle theta3=0, the above calculated theta3 will be alpha. Therefore, we need to subtract this offset alpha from the calculated theta3.
 
-*alpha = atan(b/a)* ... a and b are obtained from [URDF file](./kuka_arm/urdf/kr210.urdf.xacro).
+`*alpha = atan(b/a)*` ... a and b are obtained from [URDF file](./kuka_arm/urdf/kr210.urdf.xacro).
 
 a=d4 and b=a3 as in DH parameter table.
 
@@ -155,6 +158,7 @@ The possibilites for alternative theta2 and theta3 are as shown below -
 The main disadvantage in this case is when given end-effector position will be closer to the base link, the joint3 will hit the ground (as shown in (b) in figure above). Also, both joint angle magnitudes will be greater (as shown in (a) and (b) in figure above). Therefore, this solution was discarded.
 
 **Calculating theta4 to theta6:**
+
 As the joint angles **theta4 to theta6** only contribute to the rotation of the end effector and do not change WC position, instead of homogeneous transform matrices, I have only considered rotational matrices.
 As taught in the lessons, R3_6 = transpose(R0_3) * R0_6.
 I calculated R0_3 using the theta1,theta2,theta3 values. R0_6 is calculated from the roll,pitch,yaw values provided. Thus RHS is known. Using the matrices in forward kinematics, I independently calculated R3_6 symbolically.
@@ -208,7 +212,8 @@ Now, following steps are done for each position:
 8. theta5 cannot be independently represented in atan2. Without atan2, there would be ambiguity in value and sign of theta5. It could either be calculated from  theta4 or theta6. I chose theta6. But the first calculation of theta5 contains cos(theta6) in denominator. So for theta6 very close to pi/2, the value will be incorrect. In that case, the next 'if' condition will become true, and there I use sin(theta6) to instead of cos(theta6).
 
 **Results:**
-The end-effector moved the `exact same trajectory` as provided(see below). 
+
+**The end-effector moved the `exact same trajectory` as provided(see below).** 
 
 ![alt text][image12]
 
@@ -221,7 +226,7 @@ The end-effector moved the `exact same trajectory` as provided(see below).
 
 ![alt text][image9]
 
-I was able to `successfully perform the pick and place for all object positions`. 
+**I was able to `successfully perform the pick and place for all object positions`. **
 
 ![alt text][image15]
 
@@ -233,7 +238,7 @@ I was able to `successfully perform the pick and place for all object positions`
 
 
 
-When *theta5 is zero*, there are two possible solutions for theta4 and theta6, as their axis of rotations will match. I haven't tackled this condition explicitly. Therefore, the arm performs some unnecessary rotation of joint4 and joint6 at the beginning. 
+When *theta5 is zero*, there are two possible solutions for theta4 and theta6, as their axis of rotations will match. I haven't tackled this condition explicitly. Therefore, the arm performs some unnecessary rotation of joint4 and joint6 at the beginning. They are computationally correct, but I'll try to avoid them in future by adding appropriate conditions to my code.
 
 
 
