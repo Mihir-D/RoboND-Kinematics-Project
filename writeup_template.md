@@ -226,7 +226,7 @@ Now, following steps are done for each position:
 
 ![alt text][image9]
 
-**I was able to `successfully perform the pick and place for all object positions`. **
+**I was able to `successfully perform the pick and place for all object positions`.**
 
 ![alt text][image15]
 
