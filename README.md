@@ -1,3 +1,6 @@
+# For my project work description, Please refer to `writeup.template` 
+
+
 # Robotic arm - Pick & Place project
 
 Make sure you are using robo-nd VM or have Ubuntu+ROS installed locally.
