@@ -1,4 +1,4 @@
-# For my project work description, Please refer to `writeup.template` 
+# For my project work description, Please refer to [`writeup_template.md`](./writeup_template.md) 
 
 
 # Robotic arm - Pick & Place project
